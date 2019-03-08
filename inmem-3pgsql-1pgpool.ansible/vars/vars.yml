@@ -1,0 +1,13 @@
+---
+pgdg_url: "https://download.postgresql.org/pub/repos/yum/11/redhat/rhel-7-x86_64/pgdg-centos11-11-2.noarch.rpm"
+pgver: 11
+subnet: "172.31.16.0/20"
+pg1_host: h_pg1
+pg1_addr: 172.31.26.96
+pg2_host: h_pg2
+pg2_addr: 172.31.16.196
+pg3_host: h_pg3
+pg3_addr: 172.31.18.189
+pool1_host: h_pg4
+pool1_addr: 172.31.17.183
+

@@ -1,0 +1,12 @@
+---
+- hosts: g-pool
+  vars:
+  vars_files:
+    - vars/vars.yml
+  remote_user: centos
+  become: yes
+  tasks:
+  - name: pgpool stop
+    shell: "/usr/pgpool-{{pgver}}/bin/pgpool -m fast stop"
+    become_user: root
+    ignore_errors: yes

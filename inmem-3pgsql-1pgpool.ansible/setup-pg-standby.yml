@@ -1,0 +1,51 @@
+---
+- hosts: g-pg-s
+  vars:
+  vars_files:
+    - vars/vars.yml
+  remote_user: centos
+  become: yes
+  tasks:
+  - name: install epel-release
+    yum:
+      name: epel-release
+      state: present
+  - name: install pgdg repo package
+    yum:
+      name: "{{ pgdg_url }}"
+      state: present
+  - name: install postgresql
+    yum:
+      name: "postgresql{{pgver}}-server"
+      state: present
+  - name: install pgpgpool-II-11-extensions
+    yum:
+      name: "pgpool-II-11-extensions"
+      state: present
+  - name: over write .bash_profile
+    copy:
+      dest: /var/lib/pgsql/.bash_profile
+      src:  "files/g-pg.bash_profile"
+      owner: postgres
+  - stat:
+      path: "/var/lib/pgsql/{{pgver}}/data/PG_VERSION"
+    register: dbcluster
+  - name: pg_basebackup
+    shell: "/usr/pgsql-{{pgver}}/bin/pg_basebackup -D /var/lib/pgsql/{{pgver}}/data -h {{pg1_host}} -R -Xs"
+    become_user: postgres
+    when: not dbcluster.stat.exists
+  - name: move pg_wal to tmpfs
+    shell: "mv /var/lib/pgsql/{{pgver}}/data/pg_wal /var/run/postgresql/ ; ln -s /var/run/postgresql/pg_wal /var/lib/pgsql/{{pgver}}/data/pg_wal"
+  - name: setting not to delete pg_wal
+    copy:
+      dest: /etc/tmpfiles.d/pg_wal.conf
+      src: "files/tmpfiles.pg.conf"
+      owner: root
+  - stat:
+      path: "/var/lib/pgsql/{{pgver}}/data/postmaster.pid"
+    register: dbpidfile
+  - name: pg_ctl start
+    shell: "/usr/pgsql-{{pgver}}/bin/pg_ctl -D /var/lib/pgsql/{{pgver}}/data start"
+    become_user: postgres
+    when: not dbpidfile.stat.exists
+

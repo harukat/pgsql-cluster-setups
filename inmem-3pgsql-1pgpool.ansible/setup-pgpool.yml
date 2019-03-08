@@ -1,0 +1,49 @@
+---
+- hosts: g-pool
+  vars:
+  vars_files:
+    - vars/vars.yml
+  remote_user: centos
+  become: yes
+  tasks:
+  - name: install epel-release
+    yum:
+      name: epel-release
+      state: present
+  - name: install pgdg repo package
+    yum:
+      name: "{{ pgdg_url }}"
+      state: present
+  - name: install postgresql
+    yum:
+      name: "postgresql{{ pgver }}-server"
+      state: present
+  - name: install pgpool
+    yum:
+      name: "pgpool-II-{{ pgver }}"
+      state: present
+  - name: over write .bash_profile
+    copy:
+      dest: /var/lib/pgsql/.bash_profile
+      src:  "files/g-pool.bash_profile"
+      owner: postgres
+  - name: over write pgpool.conf
+    template:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      src:  "files/pgpool.conf.j2"
+      owner: root
+  - name: add /var/run/pgpool
+    file:
+      path: "/var/run/pgpool"
+      state: directory
+  - name: add /var/run/pgpool setting not to delete
+    copy:
+      dest: /etc/tmpfiles.d/pgpool.conf
+      src:  "files/tmpfiles.pgpool.conf"
+  - stat:
+      path: "/var/run/pgpool/pgpool.pid"
+    register: poolpidfile
+  - name: pgpool start
+    shell: "/usr/pgpool-{{pgver}}/bin/pgpool"
+    become_user: root
+    when: not poolpidfile.stat.exists
