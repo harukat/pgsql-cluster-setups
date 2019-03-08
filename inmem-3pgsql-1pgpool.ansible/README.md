@@ -1,5 +1,5 @@
 
-** playbook
+## playbook
 
 PostgreSQL 3台、Pgpool-II 1台のクラスタを構成します。
 PostgreSQLは pg_wal を tmpfs上に、fsync=off とした、
@@ -37,7 +37,7 @@ Pgpool-IIを停止します。
 Pgpool-II をセットアップします。
 
 
-** vars
+## vars
 
     pgdg_url: "https://download.postgresql.org/pub/repos/yum/11/redhat/rhel-7-x86_64/pgdg-centos11-11-2.noarch.rpm"
     pgver: 11
