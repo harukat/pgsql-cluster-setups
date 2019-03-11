@@ -63,6 +63,11 @@
       dest: "/var/lib/pgsql/{{pgver}}/data/postgresql.conf"
       regexp: "^[# ]*synchronous_commit ="
       line: "synchronous_commit = remote_apply"
+  - name: modify postgresql.conf wal_log_hints
+    lineinfile:
+      dest: "/var/lib/pgsql/{{pgver}}/data/postgresql.conf"
+      regexp: "^[# ]*wal_log_hints ="
+      line: "wal_log_hints = on"
   - name: over write pg_hba.conf
     template:
       dest: "/var/lib/pgsql/{{pgver}}/data/pg_hba.conf"
