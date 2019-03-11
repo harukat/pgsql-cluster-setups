@@ -1,0 +1,92 @@
+---
+- hosts: g-pg-p
+  vars:
+  vars_files:
+    - vars/vars.yml
+  remote_user: centos
+  become: yes
+  tasks:
+  - name: install epel-release
+    yum:
+      name: epel-release
+      state: present
+  - name: install pgdg repo package
+    yum:
+      name: "{{ pgdg_url }}"
+      state: present
+  - name: install postgresql
+    yum:
+      name: "postgresql{{pgver}}-server"
+      state: present
+  - name: install psycopg
+    yum:
+      name: "python-psycopg2"
+      state: present
+  - name: install pgpgpool-II-11-extensions
+    yum:
+      name: "pgpool-II-{{pgver}}-extensions"
+      state: present
+  - name: over write .bash_profile
+    copy:
+      dest: /var/lib/pgsql/.bash_profile
+      src:  "files/g-pg.bash_profile"
+      owner: postgres
+  - stat:
+      path: "/var/lib/pgsql/{{pgver}}/data/PG_VERSION"
+    register: dbcluster
+  - name: initdb
+    shell: "/usr/pgsql-{{pgver}}/bin/initdb -D /var/lib/pgsql/{{pgver}}/data -X /var/run/postgresql/pg_wal --no-locale"
+    become_user: postgres
+    when: not dbcluster.stat.exists
+  - name: setting not to delete pg_wal
+    copy:
+      dest: /etc/tmpfiles.d/pg_wal.conf
+      src: "files/tmpfiles.pg.conf"
+      owner: root
+  - name: modify postgresql.conf max_connections
+    lineinfile:
+      dest: "/var/lib/pgsql/{{pgver}}/data/postgresql.conf"
+      regexp: "^[# ]*max_connections ="
+      line: "max_connections = 200"
+  - name: modify postgresql.conf listen_addresses
+    lineinfile:
+      dest: "/var/lib/pgsql/{{pgver}}/data/postgresql.conf"
+      regexp: "^[# ]*listen_addresses ="
+      line: "listen_addresses = '*'"
+  - name: modify postgresql.conf fsync
+    lineinfile:
+      dest: "/var/lib/pgsql/{{pgver}}/data/postgresql.conf"
+      regexp: "^[# ]*fsync ="
+      line: "fsync = off"
+  - name: modify postgresql.conf synchronous_commit
+    lineinfile:
+      dest: "/var/lib/pgsql/{{pgver}}/data/postgresql.conf"
+      regexp: "^[# ]*synchronous_commit ="
+      line: "synchronous_commit = remote_apply"
+  - name: over write pg_hba.conf
+    template:
+      dest: "/var/lib/pgsql/{{pgver}}/data/pg_hba.conf"
+      src:  "files/pg_hba.conf.j2"
+      owner: postgres
+  - stat:
+      path: "/var/lib/pgsql/{{pgver}}/data/postmaster.pid"
+    register: dbpidfile
+  - name: pg_ctl start
+    shell: "/usr/pgsql-{{pgver}}/bin/pg_ctl -D /var/lib/pgsql/{{pgver}}/data start"
+    become_user: postgres
+    when: not dbpidfile.stat.exists
+  - name: add nobody postgresql user
+    postgresql_user:
+      name: nobody
+  - name: add pgpool_recovery
+    command: "/usr/pgsql-{{pgver}}/bin/psql -U postgres -d template1 -c 'CREATE EXTENSION IF NOT EXISTS pgpool_recovery'"
+    become_user: postgres
+  - name: modify postgresql.conf synchronous_standby_names
+    lineinfile:
+      dest: "/var/lib/pgsql/{{pgver}}/data/postgresql.conf"
+      regexp: "^[# ]*synchronous_standby_names ="
+      line: "synchronous_standby_names = 'ANY 1 (*)'"
+  - name: pg_ctl reload
+    shell: "/usr/pgsql-{{pgver}}/bin/pg_ctl -D /var/lib/pgsql/{{pgver}}/data reload"
+    become_user: postgres
+

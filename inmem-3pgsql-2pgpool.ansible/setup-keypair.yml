@@ -1,0 +1,64 @@
+---
+#
+# root@[g-pool] --ssh--> postgres@[g-pg-p,g-pg-s]
+# postgres@[g-pg-p,g-pg-s] <--ssh--> postgres@[g-pg-p,g-pg-s]
+# 
+- hosts: g-pool
+  vars:
+  vars_files:
+    - vars/vars.yml
+  remote_user: centos
+  become: yes
+  tasks:
+  - name: .ssh directory
+    file:
+      dest: /root/.ssh
+      state: directory
+      owner: root
+      group: root
+      mode: "0700"
+  - name: set key file
+    copy:
+      dest: /root/.ssh/id_rsa
+      src:  "files/id_rsa"
+      owner: root
+      group: root
+      mode: "0600"
+- hosts:
+  - g-pg-p
+  - g-pg-s
+  vars:
+  vars_files:
+    - vars/vars.yml
+  remote_user: centos
+  become: yes
+  tasks:
+  - name: .ssh directory
+    file:
+      dest: /var/lib/pgsql/.ssh
+      state: directory
+      owner: postgres
+      group: postgres
+      mode: "0700"
+  - name: set pubkey file
+    copy:
+      dest: /var/lib/pgsql/.ssh/authorized_keys
+      src:  "files/id_rsa.pub"
+      owner: postgres
+      group: postgres
+      mode: "0600"
+  - name: set key file
+    copy:
+      dest: /var/lib/pgsql/.ssh/id_rsa
+      src:  "files/id_rsa"
+      owner: postgres
+      group: postgres
+      mode: "0600"
+  - name: turn off selinux
+    command: "setenforce 0"
+    become_user: root
+  - name: modify /etc/selinux/config
+    lineinfile:
+      dest: "/etc/selinux/config"
+      regexp: "^SELINUX="
+      line: "SELINUX=disabled"
