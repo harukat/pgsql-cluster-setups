@@ -71,10 +71,14 @@ files/ifupdown.sh を修正すれば AWS用を別の環境用に変更できま�
     pg3_addr: 172.31.31.31
     pool1_host: pg4
     pool1_addr: 172.31.28.143
+    pool2_host: hpg5
+    pool2_addr: 172.31.25.240
 
 テスト用のホストとサブネットを設定します。
 
 
+    trusted_servers: 172.31.30.9
+    delegate_ip: 172.31.25.241
     wd_authkey: hello
     if_cmd_param1: "172.31.25.241 20 eni-045049b95775cd5dc eth0 us-west-2"
     if_cmd_param2: "172.31.25.241 20 eni-05271115f9a4aff67 eth0 us-west-2"
