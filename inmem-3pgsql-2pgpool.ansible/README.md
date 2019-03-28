@@ -18,16 +18,6 @@ Pgpool-II配置インスタンスに cli実行可能なIAMロールが予め
 ネットワークが設定済みなら不要です。
 
 
-    $ ansible-playbook -i hosts setup-keypair.yml
-
-インタラクティブなパスワード入力無しのsshログインを設定します。
-以下のユーザ・ホスト間でそのように設定します。同一キーペアを使います。
-PostgreSQLサーバのSELinux解除も行います。
-
-                root@[g-pool] --ssh--> postgres@[g-pg-p,g-pg-s]
-    postgres@[g-pg-p,g-pg-s] <--ssh--> postgres@[g-pg-p,g-pg-s]
-
-
     $ ansible-playbook -i hosts drop-all-pg.yml
 
 プライマリ・スタンバイのPostgreSQLを停止してデータを削除します。
@@ -47,6 +37,17 @@ Pgpool-IIを停止します。
 
 スタンバイPostgreSQLをセットアップします。
 
+
+    $ ansible-playbook -i hosts setup-keypair.yml
+
+インタラクティブなパスワード入力無しのsshログインを設定します。
+以下のユーザ・ホスト間でそのように設定します。同一キーペアを使います。
+PostgreSQLサーバのSELinux解除も行います。
+
+                root@[g-pool] --ssh--> postgres@[g-pg-p,g-pg-s]
+    postgres@[g-pg-p,g-pg-s] <--ssh--> postgres@[g-pg-p,g-pg-s]
+
+ 
 
     $ ansible-playbook -i hosts setup-pgpool.yml
 
