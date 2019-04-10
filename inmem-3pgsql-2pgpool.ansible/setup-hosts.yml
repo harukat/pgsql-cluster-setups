@@ -20,6 +20,8 @@
   tasks:
   - name: setup /etc/hostname on pg1
     shell: echo "{{pg1_host}}" > /etc/hostname
+  - name: setup hostname on pg1
+    shell: hostname "{{pg1_host}}"
 - hosts: pg2
   vars:
   vars_files:
@@ -29,6 +31,8 @@
   tasks:
   - name: setup /etc/hostname on pg2
     shell: echo "{{pg2_host}}" > /etc/hostname
+  - name: setup hostname on pg2
+    shell: hostname "{{pg2_host}}"
 - hosts: pg3
   vars:
   vars_files:
@@ -38,6 +42,8 @@
   tasks:
   - name: setup /etc/hostname on pg3
     shell: echo "{{pg3_host}}" > /etc/hostname
+  - name: setup hostname on pg3
+    shell: hostname "{{pg3_host}}"
 - hosts: pool1
   vars:
   vars_files:
@@ -47,6 +53,8 @@
   tasks:
   - name: setup /etc/hostname on pgpool1
     shell: echo "{{pool1_host}}" > /etc/hostname
+  - name: setup hostname on pgpool1
+    shell: hostname "{{pool1_host}}"
 - hosts: pool2
   vars:
   vars_files:
@@ -54,6 +62,8 @@
   remote_user: centos
   become: yes
   tasks:
-  - name: setup /etc/hostname on pgpool1
+  - name: setup /etc/hostname on pgpool2
     shell: echo "{{pool2_host}}" > /etc/hostname
+  - name: setup hostname on pgpool2
+    shell: hostname "{{pool2_host}}"
 
