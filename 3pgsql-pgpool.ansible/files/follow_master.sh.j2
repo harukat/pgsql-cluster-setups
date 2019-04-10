@@ -1,0 +1,30 @@
+#! /bin/sh -x
+
+divorced_node=$1  # %d
+divorced_host=$2  # %h
+new_prim_host=$3  # %H
+new_pgport=$4     # %r
+pgdata=$5         # %D
+old_prim_node=$6  # %P
+
+pghome=/usr/pgsql-{{pgver}}
+
+date
+echo "divorced_node=${divorced_node}"
+
+if [ "x${divorced_node}" = "x${old_prim_node}" ]
+then
+  ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -T postgres@$divorced_host \
+    $pghome/bin/pg_ctl stop -D $pgdata -m immediate
+
+else
+  ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" -T postgres@$divorced_host "
+    sed -i.bak -e \"s/^primary_conninfo.*/primary_conninfo = 'user=postgres host=$new_prim_host port=$new_pgport'/\" $pgdata/recovery.conf
+    $pghome/bin/pg_ctl stop -D $pgdata -m fast
+    $pghome/bin/pg_rewind -D $pgdata --source-server=\"user=postgres host=$new_prim_host port=$new_pgport\"
+    $pghome/bin/pg_ctl start -D $pgdata -l $pgdata/log/pg_ctl.log < /dev/null
+"
+
+  /usr/pgpool-{{pgver}}/bin/pcp_attach_node -U postgres -w $divorced_node
+fi
+

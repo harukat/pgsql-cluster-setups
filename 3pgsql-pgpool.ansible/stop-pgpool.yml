@@ -1,0 +1,43 @@
+---
+- hosts: g-pool
+  vars:
+  vars_files:
+    - vars/vars.yml
+  remote_user: centos
+  become: yes
+  tasks:
+  - name: pgpool stop
+    shell: "/usr/pgpool-{{pgver}}/bin/pgpool -m immediate stop"
+    become_user: root
+    ignore_errors: yes
+  - name: vip release 1
+    shell: "{{if_down_cmd1}}"
+    become_user: root
+    ignore_errors: yes
+  - name: vip release 2
+    shell: "{{if_down_cmd2}}"
+    become_user: root
+    ignore_errors: yes
+  - name: vip release 3
+    shell: "{{if_down_cmd3}}"
+    become_user: root
+    ignore_errors: yes
+  - name: delete pgpool_status
+    file:
+      path: "/tmp/pgpool_status"
+      state: absent
+  - name: delete socket file WD9000
+    file:
+      path: "/tmp/.s.PGPOOLWD_CMD.9000"
+      state: absent
+  - name: delete socket file PGSQL.{{pool_port}}
+    file:
+      path: "/tmp/.s.PGSQL.{{pool_port}}"
+      state: absent
+  - name: delete socket file PGSQL.9898
+    file:
+      path: "/tmp/.s.PGSQL.9898"
+      state: absent
+
+
+

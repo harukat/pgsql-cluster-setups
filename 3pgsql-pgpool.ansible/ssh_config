@@ -1,0 +1,16 @@
+# harukat (2019-04-10)
+Host hpg1
+        HostName 172.31.30.217
+        User centos
+        IdentityFile ~/.ssh/pgg-generic-keypair.pem
+        StrictHostKeyChecking no
+Host hpg2
+        HostName 172.31.24.250
+        User centos
+        IdentityFile ~/.ssh/pgg-generic-keypair.pem
+        StrictHostKeyChecking no
+Host hpg3
+        HostName 172.31.18.234
+        User centos
+        IdentityFile ~/.ssh/pgg-generic-keypair.pem
+        StrictHostKeyChecking no

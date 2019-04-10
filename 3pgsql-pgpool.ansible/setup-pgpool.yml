@@ -1,0 +1,209 @@
+---
+- hosts: g-pool
+  vars:
+  vars_files:
+    - vars/vars.yml
+  remote_user: centos
+  become: yes
+  tasks:
+  - name: install epel-release
+    yum:
+      name: epel-release
+      state: present
+  - name: install pip
+    yum:
+      name: python2-pip
+      state: present
+  - name: install aws cli
+    pip:
+      name: awscli
+      state: present
+  - name: install pgdg repo package
+    yum:
+      name: "{{ pgdg_url }}"
+      state: present
+  - name: install pgpool
+    yum:
+      name: "pgpool-II-{{ pgver }}"
+      state: present
+  - name: add /var/run/pgpool
+    file:
+      path: "/var/run/pgpool"
+      state: directory
+  - name: add /var/run/pgpool setting not to delete
+    copy:
+      dest: /etc/tmpfiles.d/pgpool.conf
+      src:  "files/tmpfiles.pgpool.conf"
+  - name: write failover.sh
+    template:
+      dest: "/usr/pgpool-{{pgver}}/bin/failover.sh"
+      src: "files/failover.sh.j2"
+      mode: "0755"
+      owner: root
+  - name: write follow_master.sh
+    template:
+      dest: "/usr/pgpool-{{pgver}}/bin/follow_master.sh"
+      src: "files/follow_master.sh.j2"
+      mode: "0755"
+      owner: root
+  - name: write ifupdown.sh
+    copy:
+      dest: "/usr/pgpool-{{pgver}}/bin/ifupdown.sh"
+      src: "files/ifupdown.sh"
+      mode: "0755"
+      owner: root
+- hosts: pg1
+  vars:
+  vars_files:
+    - vars/vars.yml
+  remote_user: centos
+  become: yes
+  tasks:
+  - name: write pgpool.conf
+    template:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      src:  "files/pgpool.conf.j2"
+      owner: root
+- hosts: pg2
+  vars:
+  vars_files:
+    - vars/vars.yml
+  remote_user: centos
+  become: yes
+  tasks:
+  - name: write pgpool.conf
+    template:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      src:  "files/pgpool.conf.j2"
+      owner: root
+  - name: modify pgpool.conf wd_hostname
+    lineinfile:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      regexp: "^wd_hostname ="
+      line: "wd_hostname = '{{pg2_host}}'"
+  - name: modify pgpool.conf heartbeat_destination0
+    lineinfile:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      regexp: "^heartbeat_destination0 ="
+      line: "heartbeat_destination0 = '{{pg1_addr}}'"
+  - name: modify pgpool.conf heartbeat_destination1
+    lineinfile:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      regexp: "^heartbeat_destination1 ="
+      line: "heartbeat_destination1 = '{{pg3_addr}}'"
+  - name: modify pgpool.conf other_pgpool_hostname0
+    lineinfile:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      regexp: "^other_pgpool_hostname0 ="
+      line: "other_pgpool_hostname0 = '{{pg1_addr}}'"
+  - name: modify pgpool.conf other_pgpool_hostname1
+    lineinfile:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      regexp: "^other_pgpool_hostname1 ="
+      line: "other_pgpool_hostname1 = '{{pg3_addr}}'"
+  - name: modify pgpool.conf if_up_cmd
+    lineinfile:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      regexp: "^if_up_cmd ="
+      line: "if_up_cmd = 'ifupdown.sh up {{if_cmd_param2}}'"
+  - name: modify pgpool.conf if_down_cmd
+    lineinfile:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      regexp: "^if_down_cmd ="
+      line: "if_down_cmd = 'ifupdown.sh down {{if_cmd_param2}}'"
+- hosts: pg3
+  vars:
+  vars_files:
+    - vars/vars.yml
+  remote_user: centos
+  become: yes
+  tasks:
+  - name: write pgpool.conf
+    template:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      src:  "files/pgpool.conf.j2"
+      owner: root
+  - name: modify pgpool.conf wd_hostname
+    lineinfile:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      regexp: "^wd_hostname ="
+      line: "wd_hostname = '{{pg3_host}}'"
+  - name: modify pgpool.conf heartbeat_destination0
+    lineinfile:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      regexp: "^heartbeat_destination0 ="
+      line: "heartbeat_destination0 = '{{pg1_addr}}'"
+  - name: modify pgpool.conf heartbeat_destination1
+    lineinfile:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      regexp: "^heartbeat_destination1 ="
+      line: "heartbeat_destination1 = '{{pg2_addr}}'"
+  - name: modify pgpool.conf other_pgpool_hostname0
+    lineinfile:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      regexp: "^other_pgpool_hostname0 ="
+      line: "other_pgpool_hostname0 = '{{pg1_addr}}'"
+  - name: modify pgpool.conf other_pgpool_hostname1
+    lineinfile:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      regexp: "^other_pgpool_hostname1 ="
+      line: "other_pgpool_hostname1 = '{{pg2_addr}}'"
+  - name: modify pgpool.conf if_up_cmd
+    lineinfile:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      regexp: "^if_up_cmd ="
+      line: "if_up_cmd = 'ifupdown.sh up {{if_cmd_param3}}'"
+  - name: modify pgpool.conf if_down_cmd
+    lineinfile:
+      dest: "/etc/pgpool-II-{{pgver}}/pgpool.conf"
+      regexp: "^if_down_cmd ="
+      line: "if_down_cmd = 'ifupdown.sh down {{if_cmd_param3}}'"
+- hosts: g-pool
+  vars:
+  vars_files:
+    - vars/vars.yml
+  remote_user: centos
+  become: yes
+  tasks:
+  - stat:
+      path: "/etc/pgpool-II-{{pgver}}/pcp.conf"
+    register: pcpfile
+  - name: pcp file
+    shell: "echo \"postgres:$(/usr/pgpool-{{pgver}}/bin/pg_md5 {{pcp_pass}})\" > /etc/pgpool-II-{{pgver}}/pcp.conf"
+    become_user: root
+    when: not pcpfile.stat.exists
+  - name: pcppass file
+    copy:
+      dest: /root/.pcppass
+      src:  "files/_pcppass"
+      owner: root
+      mode: "0600"
+  - stat:
+      path: "/var/run/pgpool/pgpool.pid"
+    register: poolpidfile
+  - name: pgpool start
+    shell: "/usr/pgpool-{{pgver}}/bin/pgpool"
+    become_user: root
+    when: not poolpidfile.stat.exists
+- hosts:
+  - g-pg-p
+  - g-pg-s
+  vars:
+  vars_files:
+    - vars/vars.yml
+  remote_user: centos
+  become: yes
+  tasks:
+  - name: write recovery_1st_stage.sh
+    template:
+      dest: "/var/lib/pgsql/11/data/recovery_1st_stage.sh"
+      src: "files/recovery_1st_stage.sh"
+      mode: "0755"
+      owner: postgres
+  - name: write pgpool_remote_start
+    template:
+      dest: "/var/lib/pgsql/11/data/pgpool_remote_start"
+      src: "files/pgpool_remote_start"
+      mode: "0755"
+      owner: postgres
+

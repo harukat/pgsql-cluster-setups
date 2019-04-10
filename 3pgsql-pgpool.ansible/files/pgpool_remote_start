@@ -1,0 +1,23 @@
+#!/bin/bash
+# This script is run to start slave node after recovery.
+
+set -o xtrace
+exec &> /tmp/pgpool_remote_start < /dev/null
+
+PGHOME=/usr/pgsql-{{pgver}}
+DEST_HOST="$1"
+DEST_HOST_PGDATA="$2"
+
+date
+echo start: remote start PostgreSQL@$DEST_HOST
+
+# Start slave node
+ssh -T -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null postgres@$DEST_HOST $PGHOME/bin/pg_ctl -l $DEST_HOST_PGDATA/log/pg_ctl.log -w -D $DEST_HOST_PGDATA start
+
+if [[ $? -ne 0 ]]; then
+    echo $DEST_HOST start failed.
+    exit 1
+fi
+
+echo end: $DEST_HOST PostgreSQL started successfully.
+
