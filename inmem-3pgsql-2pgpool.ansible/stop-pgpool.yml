@@ -11,11 +11,11 @@
     become_user: root
     ignore_errors: yes
   - name: vip release 1
-    shell: "{{if_down_cmd1}}"
+    shell: "/usr/pgpool-{{pgver}}/bin/ifupdown.sh down {{if_cmd_param1}}"
     become_user: root
     ignore_errors: yes
   - name: vip release 2
-    shell: "{{if_down_cmd2}}"
+    shell: "/usr/pgpool-{{pgver}}/bin/ifupdown.sh down {{if_cmd_param2}}"
     become_user: root
     ignore_errors: yes
   - name: delete pgpool_status
