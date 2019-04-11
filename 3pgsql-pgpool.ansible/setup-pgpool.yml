@@ -196,13 +196,13 @@
   tasks:
   - name: write recovery_1st_stage.sh
     template:
-      dest: "/var/lib/pgsql/11/data/recovery_1st_stage.sh"
+      dest: "/var/lib/pgsql/{{pgver}}}/data/recovery_1st_stage.sh"
       src: "files/recovery_1st_stage.sh"
       mode: "0755"
       owner: postgres
   - name: write pgpool_remote_start
     template:
-      dest: "/var/lib/pgsql/11/data/pgpool_remote_start"
+      dest: "/var/lib/pgsql/{{pgver}}}/data/pgpool_remote_start"
       src: "files/pgpool_remote_start"
       mode: "0755"
       owner: postgres
