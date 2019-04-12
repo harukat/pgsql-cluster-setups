@@ -31,13 +31,11 @@
       dest: /var/lib/pgsql/.bash_profile
       src:  "files/g-pg.bash_profile"
       owner: postgres
-  - stat:
-      path: "/var/lib/pgsql/{{pgver}}/data/PG_VERSION"
-    register: dbcluster
   - name: initdb
     shell: "/usr/pgsql-{{pgver}}/bin/initdb -D /var/lib/pgsql/{{pgver}}/data -X /var/run/postgresql/pg_wal --no-locale"
+    args:
+      creates: "/var/lib/pgsql/{{pgver}}/data/PG_VERSION"
     become_user: postgres
-    when: not dbcluster.stat.exists
   - name: setting not to delete pg_wal
     copy:
       dest: /etc/tmpfiles.d/pg_wal.conf
@@ -73,13 +71,11 @@
       dest: "/var/lib/pgsql/{{pgver}}/data/pg_hba.conf"
       src:  "files/pg_hba.conf.j2"
       owner: postgres
-  - stat:
-      path: "/var/lib/pgsql/{{pgver}}/data/postmaster.pid"
-    register: dbpidfile
   - name: pg_ctl start
     shell: "/usr/pgsql-{{pgver}}/bin/pg_ctl -D /var/lib/pgsql/{{pgver}}/data start"
+    args:
+      creates: "/var/lib/pgsql/{{pgver}}/data/postmaster.pid"
     become_user: postgres
-    when: not dbpidfile.stat.exists
   - name: add nobody postgresql user
     postgresql_user:
       name: nobody
