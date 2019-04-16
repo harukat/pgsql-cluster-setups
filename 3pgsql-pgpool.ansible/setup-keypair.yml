@@ -1,7 +1,8 @@
 ---
 #
-# root@[g-pool] --ssh--> postgres@[g-pg-p,g-pg-s]
-# postgres@[g-pg-p,g-pg-s] <--ssh--> postgres@[g-pg-p,g-pg-s]
+# root@[all] <--ssh--> root@[all]
+# root@[all] --ssh--> postgres@[all]
+# postgres@[all] <--ssh--> postgres@[all]
 # 
 - hosts: g-pool
   vars:
@@ -20,7 +21,14 @@
   - name: set key file
     copy:
       dest: /root/.ssh/id_rsa
-      src:  "files/id_rsa"
+      src:  "files/id_rsa_root"
+      owner: root
+      group: root
+      mode: "0600"
+  - name: set pubkey file
+    copy:
+      dest: /root/.ssh/authorized_keys
+      src:  "files/id_rsa_root.pub"
       owner: root
       group: root
       mode: "0600"
@@ -43,22 +51,24 @@
   - name: set pubkey file
     copy:
       dest: /var/lib/pgsql/.ssh/authorized_keys
-      src:  "files/id_rsa.pub"
+      src:  "files/authorized_keys_pg"
       owner: postgres
       group: postgres
       mode: "0600"
   - name: set key file
     copy:
       dest: /var/lib/pgsql/.ssh/id_rsa
-      src:  "files/id_rsa"
+      src:  "files/id_rsa_pg"
       owner: postgres
       group: postgres
       mode: "0600"
   - name: turn off selinux
     command: "setenforce 0"
     become_user: root
+    ignore_errors: yes
   - name: modify /etc/selinux/config
     lineinfile:
       dest: "/etc/selinux/config"
       regexp: "^SELINUX="
       line: "SELINUX=disabled"
+

@@ -1,0 +1,16 @@
+---
+- hosts: g-pool
+  vars:
+  vars_files:
+    - vars/vars.yml
+  remote_user: centos
+  become: yes
+  tasks:
+  - stat:
+      path: "/var/run/pgpool/pgpool.pid"
+    register: poolpidfile
+  - name: pgpool start
+    shell: "/usr/pgpool-{{pgver}}/bin/pgpool"
+    become_user: root
+    when: not poolpidfile.stat.exists
+

@@ -1,5 +1,5 @@
 ---
-pgdg_url: "https://download.postgresql.org/pub/repos/yum/11/redhat/rhel-7-x86_64/pgdg-centos11-11-2.noarch.rpm"
+pgdg_url: "https://download.postgresql.org/pub/repos/yum/11/redhat/rhel-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm"
 pgver: 11
 subnet: "172.31.16.0/20"
 pg1_host: hpg1
@@ -12,6 +12,7 @@ pool_port: 9999
 trusted_servers: 172.31.30.9
 delegate_ip: 172.31.25.241
 wd_authkey: hello
+health_check_period: 10
 if_cmd_param1: "172.31.25.241 20 eni-07e106554146961ec eth0 us-west-2"
 if_cmd_param2: "172.31.25.241 20 eni-0fd3166955765fadc eth0 us-west-2"
 if_cmd_param3: "172.31.25.241 20 eni-0a14d9c59bcdef4df eth0 us-west-2"

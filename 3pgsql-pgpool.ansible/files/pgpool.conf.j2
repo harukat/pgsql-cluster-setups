@@ -166,7 +166,7 @@ log_destination = 'syslog'
 
 # - What to log -
 
-log_line_prefix = '%t: pid %p: '   # printf-style string to output at beginning of each log line.
+log_line_prefix = '[%P] ' #'%t: pid %p: '   # printf-style string to output at beginning of each log line.
 
 log_connections = off
                                    # Log connections
@@ -400,7 +400,7 @@ follow_master_command = '/usr/pgpool-{{pgver}}/bin/follow_master.sh %d %h %H %r 
 # HEALTH CHECK GLOBAL PARAMETERS
 #------------------------------------------------------------------------------
 
-health_check_period = 0
+health_check_period = {{health_check_period}} 
                                    # Health check period
                                    # Disabled (0) by default
 health_check_timeout = 20
@@ -591,7 +591,7 @@ clear_memqcache_on_escalation = on
                                     # This should be off if client connects to pgpool
                                     # not using virtual IP.
                                     # (change requires restart)
-wd_escalation_command = ''
+wd_escalation_command = '/usr/pgpool-{{pgver}}/bin/escalation.sh'
                                     # Executes this command at escalation on new active pgpool.
                                     # (change requires restart)
 wd_de_escalation_command = ''

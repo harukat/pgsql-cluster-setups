@@ -1,0 +1,23 @@
+---
+- hosts:
+  - g-pg-p
+  - g-pg-s
+  vars:
+  vars_files:
+    - vars/vars.yml
+  remote_user: centos
+  become: yes
+  tasks:
+  - name: pg_ctl stop
+    shell: "/usr/pgsql-{{pgver}}/bin/pg_ctl -D /var/lib/pgsql/{{pgver}}/data stop -m i"
+    become_user: postgres
+    ignore_errors: yes
+  - name: delete PGDATA
+    file:
+      path: "/var/lib/pgsql/{{pgver}}/data"
+      state: absent
+  - name: delete pg_wal
+    file:
+      path: "/var/run/postgresql/pg_wal"
+      state: absent
+

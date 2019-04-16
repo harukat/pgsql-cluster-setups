@@ -1,0 +1,16 @@
+---
+- hosts: all
+  vars:
+  vars_files:
+    - vars/vars.yml
+  remote_user: centos
+  become: yes
+  tasks:
+  - stat:
+      path: "/var/lib/pgsql/{{pgver}}/data/postmaster.pid"
+    register: dbpidfile
+  - name: pg_ctl start
+    shell: "/usr/pgsql-{{pgver}}/bin/pg_ctl -D /var/lib/pgsql/{{pgver}}/data start"
+    become_user: postgres
+    when: not dbpidfile.stat.exists
+

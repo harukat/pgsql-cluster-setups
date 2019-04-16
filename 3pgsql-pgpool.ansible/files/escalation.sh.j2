@@ -1,0 +1,26 @@
+#!/bin/sh
+
+h=$(hostname)
+hpg1="{{pg1_host}}"
+hpg2="{{pg2_host}}"
+hpg3="{{pg3_host}}"
+pgpool_home="/usr/pgpool-{{pgver}}"
+
+if   [ "x$h" = "x${hpg1}" ]; then
+  ssh -T -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    $hpg2 "$pgpool_home/bin/ifupdown.sh down {{if_cmd_param2}}"
+  ssh -T -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    $hpg3 "$pgpool_home/bin/ifupdown.sh down {{if_cmd_param3}}"
+elif [ "x$h" = "x${hpg2}" ]; then
+  ssh -T -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    $hpg1 "$pgpool_home/bin/ifupdown.sh down {{if_cmd_param1}}"
+  ssh -T -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    $hpg3 "$pgpool_home/bin/ifupdown.sh down {{if_cmd_param3}}"
+elif [ "x$h" = "x${hpg3}" ]; then
+  ssh -T -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    $hpg1 "$pgpool_home/bin/ifupdown.sh down {{if_cmd_param1}}"
+  ssh -T -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    $hpg2 "$pgpool_home/bin/ifupdown.sh down {{if_cmd_param2}}"
+fi
+
+exit 0
